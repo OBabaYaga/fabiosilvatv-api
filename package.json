@@ -1,0 +1,15 @@
+{
+  "name": "fabiosilvatv-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API da loja de pontos do fabiosilvatv.com (Vercel + Upstash Redis)",
+  "scripts": {
+    "test": "node test/run-tests.js"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.38.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
