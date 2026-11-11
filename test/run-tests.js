@@ -25,6 +25,7 @@ const VIEWER = 'token-outrapessoa-valida'; // outrapessoa — 20 pontos SE
   let r = await call(lojaApi, 'GET');
   console.log('prémios:', r.j.produtos.map((p) => `${p.nome} (${p.preco}, stock ${p.stock})`).join(' | '));
   assert.equal(r.j.produtos.length, 5); assert.ok(r.j.produtos.every((p) => p.stock === 0));
+  assert.equal(r.j.produtos.find((p) => p.id === 'amazon-25').imagem, 'assets/loja/amazon-25.jpg');
   assert.equal(r.h['Access-Control-Allow-Origin'], 'https://fabiosilvatv.com');
 
   // sem stock -> esgotado
@@ -85,6 +86,12 @@ const VIEWER = 'token-outrapessoa-valida'; // outrapessoa — 20 pontos SE
   r = await call(saldoApi, 'GET', null, null, { username: 'outrapessoa' });
   assert.equal(r.j.saldo, 170); assert.equal(r.j.pontos, 20);
   r = await call(lojaApi, 'GET'); assert.equal(r.j.produtos.find((p) => p.id === 'deposito-10').stock, 4);
+
+  // imagem: só ficheiros do site ou https
+  r = await call(lojaApi, 'POST', { acao: 'guardar-produto', produto: { id: 'deposito-20', imagem: 'javascript:alert(1)' } }, ADMIN);
+  assert.equal(r.j.produto.imagem, '');
+  r = await call(lojaApi, 'POST', { acao: 'guardar-produto', produto: { id: 'deposito-20', imagem: 'assets/loja/deposito-20.jpg' } }, ADMIN);
+  assert.equal(r.j.produto.imagem, 'assets/loja/deposito-20.jpg');
 
   // produto novo + desativar
   r = await call(lojaApi, 'POST', { acao: 'guardar-produto', produto: { nome: 'Shoutout', preco: 10, stock: 3, campos: [] } }, ADMIN);
