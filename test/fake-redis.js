@@ -9,7 +9,8 @@ class Redis {
   async decr(k) { const n = (parseInt(store.get(k) || 0) - 1); store.set(k, String(n)); return n; }
   async hmget(k, ...fs) { const h = store.get(k) || {}; return fs.map(f => (f in h ? h[f] : null)); }
   async incr(k) { const n = (parseInt(store.get(k) || 0) + 1); store.set(k, String(n)); return n; }
-  async del(k) { store.delete(k); return 1; }
+  async del(...ks) { ks.forEach(k => store.delete(k)); return ks.length; }
+  async scan(c, o) { const re = new RegExp('^' + o.match.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$'); return [0, [...store.keys()].filter(k => re.test(k))]; }
   h(k) { if (!store.has(k)) store.set(k, {}); return store.get(k); }
   async hget(k, f) { const h = store.get(k); return h && f in h ? h[f] : null; }
   async hdel(k, ...fs) { const h = store.get(k); if (h) fs.forEach(f => delete h[f]); return 1; }

@@ -102,5 +102,30 @@ const VIEWER = 'token-outrapessoa-valida'; // outrapessoa — 20 pontos SE
 
   r = await call(lojaApi, 'POST', { acao: 'estado' });
   assert.equal(r.s, 401);
+
+  // ---------- RESET ----------
+  const jogosApi = require('../api/jogos.js');
+  await call(jogosApi, 'POST', { acao: 'jogar', jogo: 'dados', passo: 'iniciar', params: { aposta: 100, alvo: 50, acima: true } }, VIEWER);
+  await call(jogosApi, 'POST', { acao: 'jogar', jogo: 'minas', passo: 'iniciar', params: { aposta: 10, minas: 3 } }, VIEWER);
+  r = await call(lojaApi, 'POST', { acao: 'reset', saldos: true, fichas: true }, VIEWER); assert.equal(r.s, 403);
+  r = await call(lojaApi, 'POST', { acao: 'reset', saldos: true, fichas: true, confirmar: 'sim' }, ADMIN); assert.equal(r.s, 400);
+  r = await call(lojaApi, 'POST', { acao: 'estado' }, VIEWER); const antes = r.j;
+  r = await call(lojaApi, 'POST', { acao: 'reset', saldos: true, fichas: true, confirmar: 'RESET' }, ADMIN);
+  console.log('reset:', JSON.stringify(r.j), '| saldo do viewer antes', antes.saldo);
+  assert.equal(r.s, 200); assert.equal(r.j.saldos.pessoas, 2);
+  r = await call(lojaApi, 'POST', { acao: 'estado' }, VIEWER);
+  assert.equal(r.j.saldo, 0); assert.equal(r.j.pontos, antes.pontos, 'pontos SE intactos'); assert.equal(r.j.pedidos.length, antes.pedidos.length);
+  r = await call(lojaApi, 'POST', { acao: 'estado' }, ADMIN); assert.equal(r.j.saldo, 0);
+  // depois do reset: ver a live volta a dar saldo
+  await fetch('http://localhost:4001/kappa/v2/points/fake-channel-id/outrapessoa/75', { method: 'PUT' });
+  r = await call(lojaApi, 'POST', { acao: 'estado' }, VIEWER); assert.equal(r.j.saldo, 75);
+  // e comprar desconta normalmente
+  await call(lojaApi, 'POST', { acao: 'guardar-produto', produto: { id: 'amazon-50', preco: 70, stock: 1 } }, ADMIN);
+  r = await call(lojaApi, 'POST', { acao: 'comprar', produtoId: 'amazon-50', dados: { email: 'x@y.pt' } }, VIEWER);
+  assert.equal(r.j.saldo, 5);
+  // fichas: ranking vazio, jogo a meio apagado, volta às 1000
+  r = await call(jogosApi, 'GET'); assert.equal(r.j.top.length, 0);
+  r = await call(jogosApi, 'POST', { acao: 'estado' }, VIEWER);
+  assert.equal(r.j.fichas, 1000); assert.ok(!r.j.ativos.minas);
   console.log('TODOS OS TESTES PASSARAM');
 })().catch((e) => { console.error('FALHOU', e); process.exit(1); });

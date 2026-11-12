@@ -46,7 +46,8 @@ const server = http.createServer((req, res) => {
     const list = Object.entries(POINTS_DB)
       .map(([username, points]) => ({ username, points }))
       .sort((a, b) => b.points - a.points);
-    return send(res, 200, list);
+    const off = Number(url.searchParams.get('offset') || 0), lim = Number(url.searchParams.get('limit') || 20);
+    return send(res, 200, { _total: list.length, users: list.slice(off, off + lim) });
   }
 
   // --- StreamElements: GET/PUT /kappa/v2/points/:channel/:username[/:amount] ---

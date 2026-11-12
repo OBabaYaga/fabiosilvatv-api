@@ -50,6 +50,7 @@ Entra em fabiosilvatv.com/loja.html com a conta **fabiosilva_tv**: aparece a **G
 - **Prémios**: muda nome, preço, stock, máximo por pessoa por mês, o que o viewer tem de indicar (nada / casino + ID / email / texto) e se está visível. Os prémios novos começam com **stock 0** — ninguém compra até definires o stock.
 - **Pedidos**: cada compra aparece como *Pendente*, com os dados que o viewer indicou. Depois de entregares, carrega em **Entregue**. Se não der, **Recusar e devolver pontos** devolve o saldo, o stock e o limite mensal (o viewer vê a nota que escreveres).
 - **Ajustar saldo**: dá ou tira saldo da loja a alguém (não mexe nos pontos StreamElements).
+- **Pôr pontos a zero (reset)**: põe o saldo da loja e/ou as fichas dos minijogos de **todos** a zero (escreve RESET para confirmar). O saldo passa a ser `pontos StreamElements − pontos no momento do reset + ajustes`, por isso só conta o que cada um ganhar daí para a frente. Não mexe nos pontos da StreamElements nem nos pedidos já feitos.
 
 ## Testes locais
 

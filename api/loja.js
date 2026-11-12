@@ -14,6 +14,9 @@
 // POST { acao: "apagar-produto", id }
 // POST { acao: "pedido", id, estado: "entregue"|"recusado", nota }
 // POST { acao: "ajustar-saldo", username, quantidade }
+// POST { acao: "reset", saldos: true|false, fichas: true|false,
+//        confirmar: "RESET" }             -> põe a zero o saldo da loja e/ou
+//                                             as fichas dos minijogos de todos
 // ===================================================================
 
 const { handlePreflight, applyCors } = require('../lib/cors');
@@ -21,6 +24,7 @@ const { requireUser, getAdminLogins } = require('../lib/admin');
 const { readBody } = require('../lib/body');
 const loja = require('../lib/loja');
 const saldo = require('../lib/saldo');
+const jogos = require('../lib/jogos');
 
 const ERROS_VIEWER = ['INVALIDO', 'ESGOTADO', 'LIMITE', 'SALDO', 'OCUPADO'];
 
@@ -92,6 +96,18 @@ module.exports = async (req, res) => {
       }
       const r = await saldo.alterarSaldo(login, q);
       res.status(200).json(Object.assign({ username: login }, r));
+      return;
+    }
+
+    if (body.acao === 'reset') {
+      if (body.confirmar !== 'RESET' || (!body.saldos && !body.fichas)) {
+        res.status(400).json({ error: 'Escreve RESET e escolhe o que queres pôr a zero.' });
+        return;
+      }
+      const r = {};
+      if (body.saldos) r.saldos = await saldo.resetSaldos();
+      if (body.fichas) r.fichas = await jogos.resetFichas();
+      res.status(200).json(r);
       return;
     }
 
