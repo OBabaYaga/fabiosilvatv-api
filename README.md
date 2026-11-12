@@ -32,15 +32,16 @@ Comprar, ver os próprios pedidos e as ações do streamer exigem `Authorization
 
 Variáveis opcionais: `ADMIN_LOGINS` (vários separados por vírgulas), `FRONTEND_URL` (por omissão `https://fabiosilvatv.com,https://www.fabiosilvatv.com`), `SE_CHANNEL_ID` (por omissão o do canal fabiosilva_tv).
 
-## Minijogos — ranking semanal
+## Minijogos — ranking
 
-As **fichas dos minijogos não têm nada a ver com a loja**: não se compram, não se trocam por prémios e não mexem no saldo da loja nem nos pontos StreamElements. Servem só para o ranking.
+As **fichas dos minijogos não têm nada a ver com a loja**: não se compram, não se trocam por prémios e não mexem no saldo da loja nem nos pontos StreamElements. Servem só para o ranking entre espectadores.
 
-- Cada semana (segunda-feira 00:00, hora de Lisboa) toda a gente começa com **1.000 fichas**; há um **bónus diário de +500** igual para todos.
+- Na primeira vez cada pessoa recebe **1.000 fichas**. As fichas **acumulam** (não há reset) e o ranking é o total de fichas.
+- **Ganham-se fichas a ver a live**: cada ponto novo na StreamElements (o total "desde sempre", que só sobe) dá 1 ficha. A API lê a StreamElements no máximo de 2 em 2 minutos por pessoa. Quem chega a 0 só volta a jogar depois de ver a live.
 - No modo Ranking é **o servidor que sorteia** (`lib/og-motor.js`), por isso não dá para fazer batota no browser. No Crash a recolha é sempre a automática.
 - `lib/og-motor.js` é uma cópia do `og-motor.js` do site: se mudares um, copia para o outro.
-- Variáveis opcionais: `JOGOS_FICHAS_INICIAIS` (1000), `JOGOS_BONUS_DIARIO` (500), `JOGOS_MAX_JOGADAS_DIA` (5000 por pessoa).
-- Cada jogada gasta ~7–9 comandos no Redis. O plano grátis do Upstash dá para dezenas de milhares de jogadas por mês; se o ranking pegar muito, vê o consumo no painel do Upstash.
+- Variáveis opcionais: `JOGOS_FICHAS_INICIAIS` (1000), `JOGOS_FICHAS_POR_PONTO` (1), `JOGOS_MAX_JOGADAS_DIA` (5000 por pessoa).
+- Cada jogada gasta ~7–10 comandos no Redis. O plano grátis do Upstash dá para dezenas de milhares de jogadas por mês; se o ranking pegar muito, vê o consumo no painel do Upstash.
 
 ## Usar a loja (streamer)
 

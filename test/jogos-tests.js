@@ -1,7 +1,9 @@
-// Testes do modo Ranking dos minijogos. Corre com:
+// Testes do modo Ranking dos minijogos (fichas ganhas a ver a live). Corre com:
 //   node test/mock-external.js   (terminal 1)
 //   node test/jogos-tests.js     (terminal 2)
 process.env.TWITCH_VALIDATE_URL = 'http://localhost:4001/oauth2/validate';
+process.env.SE_API_BASE = 'http://localhost:4001/kappa/v2/points';
+process.env.SE_CHANNEL_ID = 'fake-channel-id';
 process.env.KV_REST_API_URL = 'x'; process.env.KV_REST_API_TOKEN = 'x';
 const store = require('./fake-redis');
 const assert = require('assert');
@@ -19,10 +21,18 @@ const jogar = (t, jogo, passo, params) => call('POST', { acao: 'jogar', jogo, pa
   let r = await call('POST', { acao: 'estado' });
   assert.equal(r.s, 401);
   r = await call('POST', { acao: 'estado' }, A);
-  assert.equal(r.j.fichas, 1000); assert.equal(r.j.bonusDisponivel, true);
-
-  r = await call('POST', { acao: 'bonus' }, A); assert.equal(r.j.fichas, 1500);
-  r = await call('POST', { acao: 'bonus' }, A); assert.equal(r.j.code, 'JA_RECEBIDO');
+  assert.equal(r.j.fichas, 1000); assert.equal(r.j.ganhoAgora, 0);
+  // "vê a live": a StreamElements dá +500 pontos -> +500 fichas (depois da espera de 2 min)
+  await fetch('http://localhost:4001/kappa/v2/points/fake-channel-id/fabio_teste/500', { method: 'PUT' });
+  r = await call('POST', { acao: 'estado' }, A);
+  assert.equal(r.j.fichas, 1000, 'ainda dentro da espera');
+  store.delete('fstv:fsync:fabio_teste');
+  r = await call('POST', { acao: 'estado' }, A);
+  assert.equal(r.j.fichas, 1500); assert.equal(r.j.ganhoAgora, 500);
+  // pontos gastos/repostos na StreamElements não tiram fichas
+  await fetch('http://localhost:4001/kappa/v2/points/fake-channel-id/fabio_teste/-900', { method: 'PUT' });
+  store.delete('fstv:fsync:fabio_teste');
+  r = await call('POST', { acao: 'estado' }, A); assert.equal(r.j.fichas, 1500);
 
   // aposta maior do que o saldo
   r = await jogar(A, 'dados', 'iniciar', { aposta: 999999, alvo: 50, acima: true });
@@ -61,7 +71,7 @@ const jogar = (t, jogo, passo, params) => call('POST', { acao: 'jogar', jogo, pa
   r = await call('POST', { acao: 'estado' }, A);
   assert.ok(r.j.ativos.minas && r.j.ativos.minas.minas === undefined);
   // descobre uma casa segura olhando para o "Redis" (só no teste)
-  const est = JSON.parse([...store.entries()].find(([k]) => k.startsWith('fstv:jogo:fabio_teste:minas'))[1]).estado;
+  const est = JSON.parse(store.get('fstv:jogo:fabio_teste:minas')).estado;
   const segura = [...Array(25).keys()].find((i) => !est.minas.includes(i));
   r = await jogar(A, 'minas', 'abrir', { i: segura }); assert.equal(r.j.fim, false);
   r = await jogar(A, 'minas', 'abrir', { i: segura }); assert.equal(r.j.code, 'INVALIDO');
@@ -89,10 +99,19 @@ const jogar = (t, jogo, passo, params) => call('POST', { acao: 'jogar', jogo, pa
   console.log('em simultâneo:', duas.map((x) => x.s).join(', '));
   assert.ok(duas.some((x) => x.s === 200));
 
-  // segundo jogador e ranking
-  await jogar(B, 'dados', 'iniciar', { aposta: 1, alvo: 50, acima: true });
+  // segundo jogador: perde tudo -> fica a 0 -> vê a live -> volta a jogar
+  await call('POST', { acao: 'estado' }, B);
+  r = await jogar(B, 'dados', 'iniciar', { aposta: 1000, alvo: 2, acima: false }); // 2% de ganhar
+  let fb = r.j.fichas;
+  while (fb > 0) { r = await jogar(B, 'dados', 'iniciar', { aposta: fb, alvo: 2, acima: false }); fb = r.j.fichas; }
+  r = await jogar(B, 'dados', 'iniciar', { aposta: 1, alvo: 50, acima: true });
+  assert.equal(r.j.code, 'SALDO'); console.log('a zero:', r.j.error);
+  await fetch('http://localhost:4001/kappa/v2/points/fake-channel-id/outrapessoa/120', { method: 'PUT' });
+  store.delete('fstv:fsync:outrapessoa');
+  r = await jogar(B, 'dados', 'iniciar', { aposta: 10, alvo: 50, acima: true });
+  assert.equal(r.s, 200); assert.equal(r.j.ganhoAgora, 120); assert.equal(r.j.fichas, 110 + r.j.credito);
   r = await call('GET');
-  console.log('ranking:', r.j.top.map((t) => `${t.login} ${t.fichas}`).join(' | '), r.j.semana);
+  console.log('ranking:', r.j.top.map((t) => `${t.login} ${t.fichas}`).join(' | '), '| jogadores', r.j.jogadores);
   assert.equal(r.j.top.length, 2); assert.equal(r.j.top.find((t) => t.login === 'fabio_teste').fichas, esperado);
   r = await call('POST', { acao: 'estado' }, A);
   assert.ok(r.j.posicao >= 1); assert.equal(r.j.fichas, esperado);

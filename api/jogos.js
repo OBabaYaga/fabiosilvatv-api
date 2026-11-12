@@ -1,12 +1,12 @@
 // ===================================================================
-// /api/jogos — minijogos em modo Ranking semanal (fichas sem valor)
+// /api/jogos — minijogos em modo Ranking (fichas sem valor, ganhas a ver a live)
 // ===================================================================
-// GET                                        -> ranking da semana (público)
+// GET                                        -> ranking (público)
 //
 // Com sessão Twitch (Authorization: Bearer <token>):
-// POST { acao: "estado" }                    -> as minhas fichas, posição,
-//                                               bónus e jogos a decorrer
-// POST { acao: "bonus" }                     -> bónus diário
+// POST { acao: "estado" }                    -> as minhas fichas (junta as
+//                                               ganhas a ver a live), posição
+//                                               e jogos a decorrer
 // POST { acao: "jogar", jogo, passo, params } -> uma jogada (o servidor sorteia)
 // ===================================================================
 
@@ -51,7 +51,6 @@ module.exports = async (req, res) => {
     }
     const body = readBody(req);
     if (body.acao === 'estado') return void res.status(200).json(await jogos.estado(login));
-    if (body.acao === 'bonus') return void res.status(200).json(await jogos.receberBonus(login));
     if (body.acao === 'jogar') return void res.status(200).json(await jogos.jogar(login, String(body.jogo || ''), body.passo, body.params));
     res.status(400).json({ error: 'Ação desconhecida.' });
   } catch (e) {
