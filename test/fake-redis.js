@@ -19,10 +19,12 @@ class Redis {
   async hincrby(k, f, d) { const h = this.h(k); h[f] = (parseInt(h[f] || 0) + d); return h[f]; }
   z(k) { if (!store.has(k)) store.set(k, []); return store.get(k); }
   async zadd(k, { score, member }) { const z = this.z(k).filter(e => e.m !== member); z.push({ s: score, m: member }); store.set(k, z); return 1; }
-  async zrange(k, a, b, o) { let z = [...this.z(k)].sort((x, y) => x.s - y.s); if (o && o.rev) z.reverse(); return z.map(e => e.m); }
+  async zrange(k, a, b, o) { let z = [...this.z(k)].sort((x, y) => x.s - y.s); if (o && o.rev) z.reverse(); if (!(o && o.byScore)) z = z.slice(a, b < 0 ? undefined : b + 1); return o && o.withScores ? z.flatMap(e => [e.m, e.s]) : z.map(e => e.m); }
   async zrem(k, m) { store.set(k, this.z(k).filter(e => e.m !== m)); return 1; }
   async zremrangebyscore(k, a, b) { store.set(k, this.z(k).filter(e => !(e.s >= a && e.s <= b))); return 1; }
   async zcard(k) { return this.z(k).length; }
+  async hsetnx(k, f, v) { const h = this.h(k); if (f in h) return 0; h[f] = v; return 1; }
+  async zrevrank(k, m) { const z = [...this.z(k)].sort((x, y) => y.s - x.s); const i = z.findIndex(e => e.m === m); return i < 0 ? null : i; }
   async expire() { return 1; }
 }
 const orig = Module._load;

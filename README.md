@@ -1,6 +1,6 @@
 # fabiosilvatv-api
 
-API da **loja de pontos** do site [fabiosilvatv.com](https://fabiosilvatv.com) — Vercel (funções Node) + Redis (Upstash).
+API da **loja de pontos** e do **ranking semanal dos minijogos** do site [fabiosilvatv.com](https://fabiosilvatv.com) — Vercel (funções Node) + Redis (Upstash).
 
 ## Como funcionam os pontos
 
@@ -17,6 +17,8 @@ Cada viewer tem duas carteiras:
 | `GET /api/saldo?username=x` | Pontos da live + saldo da loja de alguém (público) |
 | `GET /api/loja` | Prémios visíveis + lista de casinos (público) |
 | `POST /api/loja` | Ações com sessão Twitch — ver comentário no topo de `api/loja.js` |
+| `GET /api/jogos` | Ranking semanal dos minijogos (público) |
+| `POST /api/jogos` | Fichas, bónus diário e jogadas do ranking — ver `api/jogos.js` |
 
 Comprar, ver os próprios pedidos e as ações do streamer exigem `Authorization: Bearer <token Twitch>`. O streamer é quem está em `ADMIN_LOGINS` (por omissão `fabiosilva_tv`).
 
@@ -29,6 +31,16 @@ Comprar, ver os próprios pedidos e as ações do streamer exigem `Authorization
 5. Se o endereço do projeto não for `fabiosilvatv-api.vercel.app`, muda `LOJA_API` no topo do `loja.js` do site.
 
 Variáveis opcionais: `ADMIN_LOGINS` (vários separados por vírgulas), `FRONTEND_URL` (por omissão `https://fabiosilvatv.com,https://www.fabiosilvatv.com`), `SE_CHANNEL_ID` (por omissão o do canal fabiosilva_tv).
+
+## Minijogos — ranking semanal
+
+As **fichas dos minijogos não têm nada a ver com a loja**: não se compram, não se trocam por prémios e não mexem no saldo da loja nem nos pontos StreamElements. Servem só para o ranking.
+
+- Cada semana (segunda-feira 00:00, hora de Lisboa) toda a gente começa com **1.000 fichas**; há um **bónus diário de +500** igual para todos.
+- No modo Ranking é **o servidor que sorteia** (`lib/og-motor.js`), por isso não dá para fazer batota no browser. No Crash a recolha é sempre a automática.
+- `lib/og-motor.js` é uma cópia do `og-motor.js` do site: se mudares um, copia para o outro.
+- Variáveis opcionais: `JOGOS_FICHAS_INICIAIS` (1000), `JOGOS_BONUS_DIARIO` (500), `JOGOS_MAX_JOGADAS_DIA` (5000 por pessoa).
+- Cada jogada gasta ~7–9 comandos no Redis. O plano grátis do Upstash dá para dezenas de milhares de jogadas por mês; se o ranking pegar muito, vê o consumo no painel do Upstash.
 
 ## Usar a loja (streamer)
 
@@ -43,5 +55,6 @@ Entra em fabiosilvatv.com/loja.html com a conta **fabiosilva_tv**: aparece a **G
 ```bash
 npm install
 node test/mock-external.js          # terminal 1 (Twitch + StreamElements de mentira)
-node test/run-tests.js              # terminal 2
+node test/run-tests.js              # terminal 2 (loja)
+node test/jogos-tests.js            # terminal 2 (minijogos)
 ```
