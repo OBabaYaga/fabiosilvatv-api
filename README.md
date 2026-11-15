@@ -70,3 +70,14 @@ node test/jogos-tests.js            # terminal 2 (minijogos)
 - Desafios e ranking usam só a Liga da Comunidade (jogados no servidor).
 
 Testes: `node test/mock-external.js & node test/manager-tests.js`
+
+## App instalável + avisos de live (`/api/push`)
+
+O site é instalável como app (PWA) e quem ativar os avisos recebe uma notificação quando o canal entra em direto na Twitch.
+
+1. Em **https://dev.twitch.tv/console/apps**, abre a app "FabioSilva_TV Website" → **Manage** → **New Secret** e copia o Client Secret.
+2. No Vercel (projeto fabiosilvatv-api), cria a variável `TWITCH_CLIENT_SECRET` com esse valor e faz **Redeploy**. Nunca o envies por chat.
+3. No site, entra com a conta fabiosilva_tv e abre a **Loja** → painel **Notificações da app** → **Ligar aviso de live**. Ao fim de uns segundos deve aparecer "✅ Ligado".
+4. Ativa os avisos no teu telemóvel e usa **Enviar notificação de teste**.
+
+Chaves no Redis: `fstv:push:*` (as chaves VAPID ficam em `fstv:push:vapid` — não mexer). Testes: `node test/mock-external.js & node test/push-tests.js`.
