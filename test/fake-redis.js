@@ -27,6 +27,9 @@ class Redis {
   async hsetnx(k, f, v) { const h = this.h(k); if (f in h) return 0; h[f] = v; return 1; }
   async zrevrank(k, m) { const z = [...this.z(k)].sort((x, y) => y.s - x.s); const i = z.findIndex(e => e.m === m); return i < 0 ? null : i; }
   async expire() { return 1; }
+  async lpush(k, ...vs) { const l = Array.isArray(store.get(k)) ? store.get(k) : []; vs.forEach(v => l.unshift(v)); store.set(k, l); return l.length; }
+  async ltrim(k, a, b) { const l = Array.isArray(store.get(k)) ? store.get(k) : []; store.set(k, l.slice(a, b < 0 ? undefined : b + 1)); return 'OK'; }
+  async lrange(k, a, b) { const l = Array.isArray(store.get(k)) ? store.get(k) : []; return l.slice(a, b < 0 ? undefined : b + 1); }
   async pfadd(k, ...ms) { if (!(store.get(k) instanceof Set)) store.set(k, new Set()); const st = store.get(k); const a = st.size; ms.forEach(m => st.add(m)); return st.size > a ? 1 : 0; }
   async pfcount(k) { const st = store.get(k); return st instanceof Set ? st.size : 0; }
 }

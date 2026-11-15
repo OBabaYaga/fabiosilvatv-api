@@ -60,3 +60,13 @@ node test/mock-external.js          # terminal 1 (Twitch + StreamElements de men
 node test/run-tests.js              # terminal 2 (loja)
 node test/jogos-tests.js            # terminal 2 (minijogos)
 ```
+
+## FS Manager (jogo de manager de futebol)
+
+`/api/manager?acao=...` — a lógica está em `lib/manager/api.js` e o motor em `lib/manager/motor.js`, que tem de ser **igual** ao `manager-motor.js` do site (o teste `test/manager-tests.js` confirma). Chaves no Redis: `fstv:mg:*`.
+
+- Liga da Comunidade (`liga=oficial`): só quem está em `ADMIN_LOGINS` a cria e gere (na própria página do jogo, separador Ligas).
+- Ligas privadas: cada pessoa cria até 2 e convida amigos com um código de 6 letras.
+- Desafios e ranking usam só a Liga da Comunidade (jogados no servidor).
+
+Testes: `node test/mock-external.js & node test/manager-tests.js`

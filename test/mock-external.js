@@ -9,6 +9,7 @@ const http = require('http');
 const VALID_TOKENS = {
   'token-fabio-valido': { login: 'fabio_teste', user_id: '111' },
   'token-outrapessoa-valida': { login: 'outrapessoa', user_id: '222' },
+  'token-amigo-valido': { login: 'amigo_teste', user_id: '333' },
 };
 
 // saldo de pontos "na base de dados" fake do StreamElements
