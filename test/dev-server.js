@@ -1,7 +1,7 @@
 // Servidor local para testar a API sem o Vercel:
 //   node -r ./test/fake-redis.js test/dev-server.js   (porta 4003)
 const http = require('http');
-const rotas = { '/api/loja': require('../api/loja.js'), '/api/saldo': require('../api/saldo.js'), '/api/health': require('../api/health.js'), '/api/jogos': require('../api/jogos.js'), '/api/stats': require('../api/stats.js'), '/api/manager': require('../api/manager.js'), '/api/push': require('../api/push.js') };
+const rotas = { '/api/loja': require('../api/loja.js'), '/api/saldo': require('../api/saldo.js'), '/api/health': require('../api/health.js'), '/api/jogos': require('../api/jogos.js'), '/api/stats': require('../api/stats.js'), '/api/manager': require('../api/manager.js'), '/api/push': require('../api/push.js'), '/api/hunt': require('../api/hunt.js') };
 http
   .createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
