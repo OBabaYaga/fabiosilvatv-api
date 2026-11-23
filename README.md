@@ -19,6 +19,8 @@ Cada viewer tem duas carteiras:
 | `POST /api/loja` | Ações com sessão Twitch — ver comentário no topo de `api/loja.js` |
 | `GET /api/jogos` | Ranking semanal dos minijogos (público) |
 | `POST /api/jogos` | Fichas, bónus diário e jogadas do ranking — ver `api/jogos.js` |
+| `GET /api/hunt` | Bonus hunt ao vivo, arquivo de hunts e palpites — ver `api/hunt.js` |
+| `POST /api/hunt` | Palpites do Guess the Balance (sessão Twitch) e sync do servidor das overlays (streamer) |
 
 Comprar, ver os próprios pedidos e as ações do streamer exigem `Authorization: Bearer <token Twitch>`. O streamer é quem está em `ADMIN_LOGINS` (por omissão `fabiosilva_tv`).
 
@@ -81,3 +83,18 @@ O site é instalável como app (PWA) e quem ativar os avisos recebe uma notifica
 4. Ativa os avisos no teu telemóvel e usa **Enviar notificação de teste**.
 
 Chaves no Redis: `fstv:push:*` (as chaves VAPID ficam em `fstv:push:vapid` — não mexer). Testes: `node test/mock-external.js & node test/push-tests.js`.
+
+## Bonus hunt ao vivo + Guess the Balance (`/api/hunt`)
+
+O servidor das overlays (no PC do streamer) envia a hunt do bonus tracker
+sempre que ela muda. O site mostra-a em `hunt.html`, guarda todas as hunts
+no arquivo e recebe os palpites do Guess the Balance (com login da Twitch,
+um palpite por pessoa, que pode ser mudado até os palpites fecharem).
+O servidor lê os palpites daqui para a overlay, escolhe o vencedor, dá os
+pontos e devolve o resultado.
+
+- Quem pode enviar a hunt: o token Twitch da conta em `ADMIN_LOGINS`, ou o
+  cabeçalho `X-Hunt-Key` igual à variável `HUNT_SYNC_KEY` (opcional; usa-a se o
+  token do servidor for de outra conta, como um bot).
+- Chaves no Redis: `fstv:hunt:*` e `fstv:hunts`.
+- Testes: `node test/mock-external.js & node test/hunt-tests.js`
