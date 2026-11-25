@@ -63,10 +63,10 @@ const FABIO = 'token-fabio-valido', OUTRA = 'token-outrapessoa-valida', AMIGO = 
   // estado: só o anfitrião
   r = await call('POST', { token: OUTRA, body: { acao: 'estado', cod, n: 5 } });
   assert.strictEqual(r.s, 403);
-  r = await call('POST', { token: FABIO, body: { acao: 'estado', cod, n: 5, estado: 'jogo', placar: '3-2' } });
+  r = await call('POST', { token: FABIO, body: { acao: 'estado', cod, n: 5, estado: 'jogo', placar: '3-2', mapa: 'casino' } });
   assert.strictEqual(r.s, 200);
   r = await call('GET', { query: { acao: 'lista' } });
-  assert.strictEqual(r.j.salas[0].n, 5); assert.strictEqual(r.j.salas[0].placar, '3-2');
+  assert.strictEqual(r.j.salas[0].n, 5); assert.strictEqual(r.j.salas[0].placar, '3-2'); assert.strictEqual(r.j.salas[0].mapa, 'casino');
 
   // sala privada não aparece na lista
   r = await call('POST', { token: AMIGO, body: { acao: 'criar', publica: false } });
