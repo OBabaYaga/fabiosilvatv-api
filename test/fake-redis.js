@@ -24,6 +24,8 @@ class Redis {
   async zrem(k, m) { store.set(k, this.z(k).filter(e => e.m !== m)); return 1; }
   async zremrangebyscore(k, a, b) { store.set(k, this.z(k).filter(e => !(e.s >= a && e.s <= b))); return 1; }
   async zcard(k) { return this.z(k).length; }
+  async zscore(k, m) { const e = this.z(k).find((x) => x.m === m); return e ? e.s : null; }
+  async zrank(k, m) { const z = [...this.z(k)].sort((x, y) => x.s - y.s); const i = z.findIndex((e) => e.m === m); return i < 0 ? null : i; }
   async hsetnx(k, f, v) { const h = this.h(k); if (f in h) return 0; h[f] = v; return 1; }
   async zrevrank(k, m) { const z = [...this.z(k)].sort((x, y) => y.s - x.s); const i = z.findIndex(e => e.m === m); return i < 0 ? null : i; }
   async expire() { return 1; }
