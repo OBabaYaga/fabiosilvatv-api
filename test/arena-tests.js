@@ -74,6 +74,14 @@ const FABIO = 'token-fabio-valido', OUTRA = 'token-outrapessoa-valida', AMIGO = 
   r = await call('GET', { query: { acao: 'lista' } });
   assert.ok(!r.j.salas.some((s) => s.cod === priv));
 
+  // bilhar: listas separadas
+  r = await call('POST', { token: OUTRA, body: { acao: 'criar', jogo: 'bilhar' } });
+  const bil = r.j.sala.cod;
+  assert.strictEqual(r.j.sala.jogo, 'bilhar');
+  r = await call('GET', { query: { acao: 'lista', jogo: 'bilhar' } });
+  assert.deepStrictEqual(r.j.salas.map((x) => x.cod), [bil]);
+  r = await call('GET', { query: { acao: 'lista' } });
+  assert.ok(!r.j.salas.some((x) => x.cod === bil));
   // fechar
   r = await call('POST', { token: OUTRA, body: { acao: 'fechar', cod } });
   assert.strictEqual(r.s, 403);

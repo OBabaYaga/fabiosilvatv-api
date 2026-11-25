@@ -1,7 +1,7 @@
 // ===================================================================
 // /api/arena — salas do jogo Arena 4v4 (ver lib/arena.js)
 //
-// GET  ?acao=lista                 salas públicas abertas
+// GET  ?acao=lista[&jogo=bilhar]   salas públicas abertas (arena ou bilhar)
 // GET  ?acao=ver&cod=XXXXX         uma sala
 // GET  ?acao=sinais&cod=XXXXX      mensagens de ligação para mim (login)
 // POST {acao:'criar', nome, titulo, publica}            (login)
@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
   try {
     const q = req.query || {};
     if (req.method === 'GET') {
-      if (q.acao === 'lista') return enviar(res, await arena.lista());
+      if (q.acao === 'lista') return enviar(res, await arena.lista(q));
       if (q.acao === 'ver') return enviar(res, await arena.ver(q.cod));
       if (q.acao === 'sinais') {
         const user = await arena.utilizador(token(req));
